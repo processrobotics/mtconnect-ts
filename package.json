@@ -1,0 +1,24 @@
+{
+  "name": "mtconnect-ts",
+  "version": "1.0.0",
+  "description": "MTConnect client library for TypeScript",
+  "type":"module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc && copyfiles -u 1 \"src/**/*.js\" dist",
+    "prepublishOnly": "npm run build",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "mtconnect",
+    "manufacturing",
+    "iot"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "devDependencies": {
+    "copyfiles": "^2.4.1",
+    "typescript": "^4.9.5"
+  }
+}
