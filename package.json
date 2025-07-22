@@ -2,13 +2,14 @@
   "name": "@mx-interface/mtconnect-ts",
   "version": "1.0.0",
   "description": "MTConnect client library for TypeScript",
-  "type":"module",
+  "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc && copyfiles -u 1 \"src/**/*.js\" dist",
     "prepublishOnly": "npm run build",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest",
+    "demo": "tsx demo/demo.ts"
   },
   "keywords": [
     "mtconnect",
@@ -18,7 +19,18 @@
   "author": "mx-interface",
   "license": "Apache-2.0",
   "devDependencies": {
+    "@types/express": "^5.0.3",
+    "@types/node": "^24.1.0",
     "copyfiles": "^2.4.1",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "socket.io": "^4.8.1",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.20.3",
     "typescript": "^4.9.5"
+  },
+  "dependencies": {
+    "jsonpath-plus": "^10.3.0",
+    "three": "^0.178.0"
   }
 }

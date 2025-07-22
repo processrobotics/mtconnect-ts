@@ -9,8 +9,28 @@ Major changes include:
 - translation from JavaScript to TypeScript
 - adjustments to enable streaming multiple devices (whereas original presumed single device per instance)
 
+## Demo
+A basic demo is provided as an included npm script. 
+### Run demo:
+`cd to/repo/location` 
+`npm install`
+`npm build`
+
+launch demo server specifying target agent url as launch arg
+`npm run demo -- [targetAgentIP]:5000`
+
+replace `[targetAgentIP]:5000` with your target agent's address and port
+
+finally check out the demo at localhost:3000
+
+![demo](demo/image.png)
+
 ## Install
-**Not currently published to npm.**
+### npm
+
+`npm install mtconnect-ts`
+
+### Local Install
 
 Add it as a submodule to your project 
 
@@ -24,24 +44,30 @@ Install locally
 
 `cd path/to/your/project/root && npm run install ./path/to/submodule`
 
-
 # Usage
+## 1) Instatiate `Rest` class
 ```ts
 import { Rest } from "@mx-interface/mtconnect-ts"
 
 const rest = new Rest(`http://${host}`, (values: any) => {
 	if (values.length !== 0) {
-		const newDevices = rest.devices.map((device: Device) => {
-			return device;
-		})
-		rest.timestamp?setLastUpdate(rest.timestamp):null;
-		setDevices(newDevices)
+		values.forEach((item) => {
+			console.log(item);
+		}
 	}
 })
 ```
-## Probe
+## 2) Probe
 ```ts
 const probe = await rest.probeMachine();
 console.log(probe)
+```
+## 3) Get Current Data from agent
+```ts
+await rest.current();
+```
+## 4) Stream updates from agent
+```ts
+await rest.streamSample();
 ```
 
