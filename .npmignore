@@ -4,3 +4,5 @@ node_modules/
 .github/
 *.log
 tsconfig.json
+.devcontainer/
+demo/
