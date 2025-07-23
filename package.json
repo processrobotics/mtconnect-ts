@@ -1,18 +1,18 @@
 {
   "name": "@mx-interface/mtconnect-ts",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "MTConnect client library for TypeScript",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/yourusername/mtconnect-ts.git"
+    "url": "git+https://github.com/processrobotics/mtconnect-ts.git"
   },
   "bugs": {
-    "url": "https://github.com/yourusername/mtconnect-ts/issues"
+    "url": "https://github.com/processrobotics/mtconnect-ts/issues"
   },
-  "homepage": "https://github.com/yourusername/mtconnect-ts#readme",
+  "homepage": "https://github.com/processrobotics/mtconnect-ts#readme",
   "files": [
     "dist/",
     "README.md",
