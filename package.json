@@ -1,14 +1,29 @@
 {
   "name": "@mx-interface/mtconnect-ts",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "MTConnect client library for TypeScript",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yourusername/mtconnect-ts.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/mtconnect-ts/issues"
+  },
+  "homepage": "https://github.com/yourusername/mtconnect-ts#readme",
+  "files": [
+    "dist/",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
     "build": "tsc && copyfiles -u 1 \"src/**/*.js\" dist",
     "prepublishOnly": "npm run build",
-    "test": "jest",
     "demo": "tsx demo/demo.ts"
   },
   "keywords": [
@@ -17,7 +32,6 @@
     "iot"
   ],
   "author": "mx-interface",
-  "license": "Apache-2.0",
   "devDependencies": {
     "@types/express": "^5.0.3",
     "@types/node": "^24.1.0",
