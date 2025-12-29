@@ -43,6 +43,23 @@ class Rest {
 		this.devices = [];
 		this.controller = new AbortController();
 	}
+	
+	async getAsset(id: string = "", removed: boolean = false): Promise<any> {
+		const url: string = `${this.url}/asset/${id}${removed ? "?removed=true" : ""}`;
+		try {
+			const result = await fetch(url, {
+				headers: {
+					'Accept': 'application/json',
+				}
+			});
+			const text = await result.text();
+			const asset = JSON.parse(text);
+			return asset;
+		} catch (error) {
+			console.log(error);
+			throw new ProtocolError("Cannot get asset");
+		}
+	}
 
 	async probe(): Promise<Device[] | undefined> {
 		try {
