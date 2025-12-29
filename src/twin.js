@@ -120,7 +120,7 @@ class Motion {
     if (this.Transformation) {
       if (this.Transformation.Rotation) {
         const rot = this.Transformation.Rotation;
-        this.rotatation = new THREE.Euler(rot[0], rot[1], rot[3], 'ZYX');
+        this.rotation = new THREE.Euler(rot[0], rot[1], rot[3], 'ZYX');
       }
       
       if (this.Transformation.Translation) {
@@ -179,12 +179,13 @@ class Geometry {
           this.model = new THREE.Mesh( obj, material );
         }
         this.model.scale.copy(this.scale);
-        this.transform();
-
+        
+        this.initTransform();
+        
         this.children.forEach(c => {
           c.loadChild();
         });
-
+        console.log("Loaded model", this.href);
         complete(this);
       });
     }
@@ -193,11 +194,12 @@ class Geometry {
   loadChild() {
     if (this.parent && this.itemRef) {
       this.model = this.parent.model.getObjectByName(this.itemRef);
-      this.transform();
+      console.log("Loaded child model", this.itemRef);
+      this.initTransform();
     }
   }
 
-  transform() {
+  initTransform() {
     if (this.Transformation) {
       if (this.Transformation.Rotation) {
         const rot = this.Transformation.Rotation;
@@ -211,7 +213,7 @@ class Geometry {
 
       const geometry = new THREE.BoxGeometry(0.01, 0.01, 0.01 );
       const edges = new THREE.EdgesGeometry( geometry );
-      const line = new THREE.LineSegments( edges, new THREE.LineBasicMaterial( { color: 0x000000 } ) );
+      const line = new THREE.LineSegments( edges, new THREE.LineBasicMaterial( { color: 'rgba(255, 0, 0, 1)' } ) );
       this.model.add( line );        
     }
   }
