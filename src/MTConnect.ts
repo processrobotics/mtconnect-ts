@@ -44,9 +44,16 @@ class Rest {
 		this.controller = new AbortController();
 	}
 	
-	async getAsset(id: string = "", removed: boolean = false): Promise<any> {
-		const url: string = `${this.url}/asset/${id}${removed ? "?removed=true" : ""}`;
+	async getAsset(id: string = "", type:string = "", removed: boolean = false): Promise<any> {
+		let url: string = `${this.url}/asset${id !== "" ? `/${id}` : "?"}`;
+		if (type !== "") {
+			url += `&type=${type}`;
+		}
+		if (removed) {
+			url += `&removed=true`;
+		}
 		try {
+			console.log(`Fetching asset from URL: ${url}`);
 			const result = await fetch(url, {
 				headers: {
 					'Accept': 'application/json',
@@ -54,6 +61,9 @@ class Rest {
 			});
 			const text = await result.text();
 			const asset = JSON.parse(text);
+			asset.MTConnectAssets.Assets[type].forEach((a: any) => {
+				a.value = a.value.replace('<![CDATA[', '').replace(']]>', '');
+			});
 			return asset;
 		} catch (error) {
 			console.log(error);
