@@ -22,7 +22,7 @@
     "node": ">=18.0.0"
   },
   "scripts": {
-    "build": "tsc && copyfiles -u 1 \"src/**/*.js\" dist",
+    "build": "rm -rf dist && tsc",
     "prepublishOnly": "npm run build",
     "demo": "tsx demo/demo.ts"
   },
@@ -35,6 +35,7 @@
   "devDependencies": {
     "@types/express": "^5.0.3",
     "@types/node": "^24.1.0",
+    "@types/react": "^18.0.0",
     "copyfiles": "^2.4.1",
     "cors": "^2.8.5",
     "express": "^5.1.0",

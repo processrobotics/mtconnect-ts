@@ -71,3 +71,41 @@ await rest.current();
 await rest.streamSample();
 ```
 
+---
+
+## React Hooks & Providers
+
+### `hooks/useMtcStream.ts`
+
+Exports `useDeviceStream(initialAgentAddress: string)`.
+
+Streams MTConnect data from a REST agent. Returns:
+
+```ts
+{
+  isStreamLoading: boolean,
+  setIsStreamLoading: (v: boolean) => void,
+  isDevicesLoaded: boolean,
+  lastUpdate: Record<string, { timestamp: Date | string, sequence: number | string }>,
+  devices: Device[],
+  agentAddress: string,
+  setAgentAddress: (addr: string) => void,
+  isConnected: boolean,
+  setIsConnected: (v: boolean) => void,
+  loadAndStream: (scene?: THREE.Scene) => Promise<void>,
+  rest: Rest,
+}
+```
+
+**Peer dependencies:** `react`, `three`, `@mx-interface/mtconnect-ts` (or the local submodule).
+
+### `providers/MtcStreamProvider.tsx`
+
+React context wrapping `useDeviceStream`. Exports:
+
+- `MtcStreamProvider` — Provider component; accepts optional `agentAddress` prop (falls back to `VITE_MTC_AGENT_URL` env var or `localhost:5000`).
+- `MtcStreamProviderProps` — Props interface for `MtcStreamProvider`.
+- `MtcStreamContextValue` — Shape of the context value.
+- `useMtcStreamContext()` — Hook that returns the context value; throws if used outside `MtcStreamProvider`.
+- `useMtcStream` — Alias for `useMtcStreamContext`.
+

@@ -1,6 +1,5 @@
 // import { Device } from './twin.js';
-import { JsonParserV1 } from "./json_parser_v1";
-import { JsonParserV2 } from "./json_parser_v2";
+import { JsonParserType } from "./json_parser";
 import { Device } from "./twin";
 class ProtocolError extends Error {  
 }
@@ -16,7 +15,7 @@ class Rest {
 	timestamp?: string;
 	onupdate: Function;
 	version: number;
-	parser: JsonParserV1 | JsonParserV2 | null;
+	parser: JsonParserType | null;
 	device: Device | undefined;
 	path: string | undefined;
 	nextSequence: number | undefined;
@@ -82,11 +81,7 @@ class Rest {
 			const probe = JSON.parse(text);
 			this.version = probe.MTConnectDevices.jsonVersion;
 			this.timestamp = probe.MTConnectDevices.Header.creationTime;
-			if (this.version == 2) {
-				this.parser = new JsonParserV2();
-			} else {
-				this.parser = new JsonParserV1();
-			}
+			this.parser = new JsonParserType();
 			this.devices = this.parser.devices(probe, (device: any) => new Device(device, this.parser));
 			// this.device = devices[0];
 			// console.debug(this.device);
