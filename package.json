@@ -13,11 +13,7 @@
     "url": "https://github.com/processrobotics/mtconnect-ts/issues"
   },
   "homepage": "https://github.com/processrobotics/mtconnect-ts#readme",
-  "files": [
-    "dist/",
-    "README.md",
-    "LICENSE"
-  ],
+  "files": ["dist/", "README.md", "LICENSE"],
   "engines": {
     "node": ">=18.0.0"
   },
@@ -26,11 +22,7 @@
     "prepublishOnly": "npm run build",
     "demo": "tsx demo/demo.ts"
   },
-  "keywords": [
-    "mtconnect",
-    "manufacturing",
-    "iot"
-  ],
+  "keywords": ["mtconnect", "manufacturing", "iot"],
   "author": "mx-interface",
   "devDependencies": {
     "@types/express": "^5.0.3",

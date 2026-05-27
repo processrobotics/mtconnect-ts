@@ -1,309 +1,339 @@
 // import { Device } from './twin.js';
-import { JsonParserType } from "./json_parser";
-import { Device } from "./twin";
-class ProtocolError extends Error {  
-}
-
+import { JsonParserType } from "./json_parser"
+import { Device } from "./twin"
+class ProtocolError extends Error {}
 
 class Rest {
-	url: string;
-	interval: number;
-	pollInterval: number;
-	usePolling: boolean;
-	streamingTimeout: number;
-	onload: ((this: Window, ev: Event) => any) | null;
-	timestamp?: string;
-	onupdate: Function;
-	version: number;
-	parser: JsonParserType | null;
-	device: Device | undefined;
-	path: string | undefined;
-	nextSequence: number | undefined;
-	buffer: string | undefined;
-	length: number | undefined;
-	boundary: string | undefined;
-	instanceId: string | undefined;
-	dataItems: { [key: string]: any };
-	devices: Device[];
-	controller: AbortController;
+  url: string
+  interval: number
+  pollInterval: number
+  usePolling: boolean
+  streamingTimeout: number
+  onload: ((this: Window, ev: Event) => any) | null
+  timestamp?: string
+  onupdate: Function
+  version: number
+  parser: JsonParserType | null
+  device: Device | undefined
+  path: string | undefined
+  nextSequence: number | undefined
+  buffer: string | undefined
+  length: number | undefined
+  boundary: string | undefined
+  instanceId: string | undefined
+  dataItems: { [key: string]: any }
+  devices: Device[]
+  controller: AbortController
 
-	constructor(url: string, onupdate: Function, interval = 100, usePolling = false) {
-		this.url = url;
-		this.interval = interval;
-		this.pollInterval = 250;
-		this.usePolling = usePolling;
-		this.streamingTimeout = 11000;
+  constructor(
+    url: string,
+    onupdate: Function,
+    interval = 100,
+    usePolling = false,
+  ) {
+    this.url = url
+    this.interval = interval
+    this.pollInterval = 250
+    this.usePolling = usePolling
+    this.streamingTimeout = 11000
 
-		this.onupdate = onupdate;
-		this.onload = null;
-		this.version = 1;
-		this.parser = null;
-		this.dataItems = {};
-		this.devices = [];
-		this.controller = new AbortController();
-	}
-	
-	async getAsset(id: string = "", type:string = "", removed: boolean = false): Promise<any> {
-		let url: string = `${this.url}/asset${id !== "" ? `/${id}` : "?"}`;
-		if (type !== "") {
-			url += `&type=${type}`;
-		}
-		if (removed) {
-			url += `&removed=true`;
-		}
-		try {
-			console.log(`Fetching asset from URL: ${url}`);
-			const result = await fetch(url, {
-				headers: {
-					'Accept': 'application/json',
-				}
-			});
-			const text = await result.text();
-			const asset = JSON.parse(text);
-			asset.MTConnectAssets.Assets[type].forEach((a: any) => {
-				a.value = a.value.replace('<![CDATA[', '').replace(']]>', '');
-			});
-			return asset;
-		} catch (error) {
-			console.log(error);
-			throw new ProtocolError("Cannot get asset");
-		}
-	}
+    this.onupdate = onupdate
+    this.onload = null
+    this.version = 1
+    this.parser = null
+    this.dataItems = {}
+    this.devices = []
+    this.controller = new AbortController()
+  }
 
-	async probe(): Promise<Device[] | undefined> {
-		try {
-			const result = await fetch(`${this.url}/probe`, {
-				headers: {
-					'Accept': 'application/json',
-				}
-			});
-			const text = await result.text();
-			const probe = JSON.parse(text);
-			this.version = probe.MTConnectDevices.jsonVersion;
-			this.timestamp = probe.MTConnectDevices.Header.creationTime;
-			this.parser = new JsonParserType();
-			this.devices = this.parser.devices(probe, (device: any) => new Device(device, this.parser));
-			// this.device = devices[0];
-			// console.debug(this.device);
-		} catch (error) {
-			console.log(error);
-			throw new ProtocolError("Cannot probe");
-		}
-		return this.devices;
-	}
+  async getAsset(id = "", type = "", removed = false): Promise<any> {
+    let url = `${this.url}/asset${id !== "" ? `/${id}` : "?"}`
+    if (type !== "") {
+      url += `&type=${type}`
+    }
+    if (removed) {
+      url += "&removed=true"
+    }
+    try {
+      console.log(`Fetching asset from URL: ${url}`)
+      const result = await fetch(url, {
+        headers: {
+          Accept: "application/json",
+        },
+      })
+      const text = await result.text()
+      const asset = JSON.parse(text)
+      asset.MTConnectAssets.Assets[type].forEach((a: any) => {
+        a.value = a.value.replace("<![CDATA[", "").replace("]]>", "")
+      })
+      return asset
+    } catch (error) {
+      console.log(error)
+      throw new ProtocolError("Cannot get asset")
+    }
+  }
 
-	async current(): Promise<void> {
-		const result = await fetch(`${this.url}/current?${this.path}`, {
-			headers: {
-				'Accept': 'application/json'
-			}
-		});
-		const text = await result.text();
-		this.handleData(text);
-	}
+  async probe(): Promise<Device[] | undefined> {
+    try {
+      const result = await fetch(`${this.url}/probe`, {
+        headers: {
+          Accept: "application/json",
+        },
+      })
+      const text = await result.text()
+      const probe = JSON.parse(text)
+      this.version = probe.MTConnectDevices.jsonVersion
+      this.timestamp = probe.MTConnectDevices.Header.creationTime
+      this.parser = new JsonParserType()
+      this.devices = this.parser.devices(
+        probe,
+        (device: any) => new Device(device, this.parser),
+      )
+      // this.device = devices[0];
+      // console.debug(this.device);
+    } catch (error) {
+      console.log(error)
+      throw new ProtocolError("Cannot probe")
+    }
+    return this.devices
+  }
 
-	sleep(delay: number): Promise<void> {
-		return new Promise(resolve => setTimeout(resolve, delay));
-	}
+  async current(): Promise<void> {
+    const result = await fetch(`${this.url}/current?${this.path}`, {
+      headers: {
+        Accept: "application/json",
+      },
+    })
+    const text = await result.text()
+    this.handleData(text)
+  }
 
-	async pollSample(): Promise<void> {
-		while (true) {
-			try {
-				const result = await fetch(`${this.url}/sample?${this.path}&from=${this.nextSequence}&count=1000`, {
-					headers: {
-						'Accept': 'application/json'
-					}
-				});
-				const text = await result.text();
-				this.handleData(text);
-		
-				await this.sleep(this.interval);
-			} catch (error) {
-				console.log(error);
-				if (error instanceof ProtocolError) {
-					throw error;
-				}
-				await this.sleep(this.pollInterval);
-			}
-		}
-	}
+  sleep(delay: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, delay))
+  }
 
-	async streamSample(): Promise<void> {
-		while (!this.controller.signal.aborted) {
-			try {
-				// const controller = new AbortController();
-				let id = setTimeout(() => this.controller.abort(), this.streamingTimeout);
-				const uri = `${this.url}/sample?${this.path}&interval=${this.interval}&from=${this.nextSequence}&count=1000`;
-				console.debug(uri);
-				const response = await fetch(uri, {
-					headers: {
-						'Accept': 'application/json'
-					},
-					signal: this.controller.signal
-				});
+  async pollSample(): Promise<void> {
+    while (true) {
+      try {
+        const result = await fetch(
+          `${this.url}/sample?${this.path}&from=${this.nextSequence}&count=1000`,
+          {
+            headers: {
+              Accept: "application/json",
+            },
+          },
+        )
+        const text = await result.text()
+        this.handleData(text)
 
-				clearTimeout(id);
+        await this.sleep(this.interval)
+      } catch (error) {
+        console.log(error)
+        if (error instanceof ProtocolError) {
+          throw error
+        }
+        await this.sleep(this.pollInterval)
+      }
+    }
+  }
 
-				const content = response.headers.get('Content-Type'); 
-				if (!content) {
-					throw new ProtocolError("Content-Type header is missing");
-				}
-				const pos = content.indexOf("boundary=");
-				if (pos < 0) {6
-					throw Error("Could not find boundary in content type");
-				}
+  async streamSample(): Promise<void> {
+    while (!this.controller.signal.aborted) {
+      try {
+        // const controller = new AbortController();
+        const id = setTimeout(
+          () => this.controller.abort(),
+          this.streamingTimeout,
+        )
+        const uri = `${this.url}/sample?${this.path}&interval=${this.interval}&from=${this.nextSequence}&count=1000`
+        console.debug(uri)
+        const response = await fetch(uri, {
+          headers: {
+            Accept: "application/json",
+          },
+          signal: this.controller.signal,
+        })
 
-				this.boundary = `--${content.substr(pos + 9)}`;
-				console.debug(this.boundary);
+        clearTimeout(id)
 
-				const reader = response.body?.getReader();
+        const content = response.headers.get("Content-Type")
+        if (!content) {
+          throw new ProtocolError("Content-Type header is missing")
+        }
+        const pos = content.indexOf("boundary=")
+        if (pos < 0) {
+          6
+          throw Error("Could not find boundary in content type")
+        }
 
-				while (true) {
-					const { value, done } = await reader?.read() || { value: undefined, done: true };
+        this.boundary = `--${content.substr(pos + 9)}`
+        console.debug(this.boundary)
 
-					if (done) break;
+        const reader = response.body?.getReader()
 
-					const text = new TextDecoder().decode(value);
-					console.log("Read " + text.length + " bytes");
+        while (true) {
+          const { value, done } = (await reader?.read()) || {
+            value: undefined,
+            done: true,
+          }
 
-					if (!this.buffer) {
-						this.buffer = text;
-					} else {
-						this.buffer += text;
-					}
-					let more = this.processChunk();
-					while (more) {
-						more = false;
-						const ind = this.buffer.indexOf(this.boundary);
-						if (ind >= 0) {
-							const body = this.buffer.indexOf("\r\n\r\n", ind);
-							if (body > ind) {
-								// Parse header fields
-								const headers = this.parseHeader(this.buffer.substring(ind + this.boundary.length + 2, body));
-								if (headers['content-length']) {
-									this.length = Number(headers['content-length']);
-									this.buffer = this.buffer.substr(body + 4);
-									more = this.processChunk();
-								} else {
-									this.usePolling = true;
-									throw new ProtocolError("Missing content length in frame header, switching to polling");
-								}
-							}
-						}
-					}
-				}
-			} catch (error) {
-				console.log(error);
-				if (error instanceof ProtocolError) {
-					throw error;
-				}
-				if (error instanceof Error && error.name !== 'AbortError') {
-					this.usePolling = true;
-					throw new ProtocolError('Switching to polling');
-				}
-				if (error instanceof Error && error.name === 'AbortError') {
-					console.log("Aborted");
-					throw new ProtocolError("Aborted");
-				}
-				await this.sleep(this.interval);
-			}
-		}
-	}
+          if (done) break
 
-	parseHeader(header: string): { [key: string]: string } {
-		return Object.fromEntries(header.split("\r\n")
-			.map(s => s.split(/:[ ]*/)).map(v => [v[0].toLowerCase(), v[1]]));
-	}
+          const text = new TextDecoder().decode(value)
+          console.log(`Read ${text.length} bytes`)
 
-	processChunk(): boolean {
-		if (this.length && this.buffer && this.buffer.length >= this.length) {
-			this.handleData(this.buffer.substr(0, this.length));
+          if (!this.buffer) {
+            this.buffer = text
+          } else {
+            this.buffer += text
+          }
+          let more = this.processChunk()
+          while (more) {
+            more = false
+            const ind = this.buffer.indexOf(this.boundary)
+            if (ind >= 0) {
+              const body = this.buffer.indexOf("\r\n\r\n", ind)
+              if (body > ind) {
+                // Parse header fields
+                const headers = this.parseHeader(
+                  this.buffer.substring(ind + this.boundary.length + 2, body),
+                )
+                if (headers["content-length"]) {
+                  this.length = Number(headers["content-length"])
+                  this.buffer = this.buffer.substr(body + 4)
+                  more = this.processChunk()
+                } else {
+                  this.usePolling = true
+                  throw new ProtocolError(
+                    "Missing content length in frame header, switching to polling",
+                  )
+                }
+              }
+            }
+          }
+        }
+      } catch (error) {
+        console.log(error)
+        if (error instanceof ProtocolError) {
+          throw error
+        }
+        if (error instanceof Error && error.name !== "AbortError") {
+          this.usePolling = true
+          throw new ProtocolError("Switching to polling")
+        }
+        if (error instanceof Error && error.name === "AbortError") {
+          console.log("Aborted")
+          throw new ProtocolError("Aborted")
+        }
+        await this.sleep(this.interval)
+      }
+    }
+  }
 
-			if (this.buffer.length > this.length) {
-				this.buffer = this.buffer.substr(this.length);
-			} else {
-				this.buffer = undefined;
-			}
-			this.length = undefined;
-		}
+  parseHeader(header: string): { [key: string]: string } {
+    return Object.fromEntries(
+      header
+        .split("\r\n")
+        .map((s) => s.split(/:[ ]*/))
+        .map((v) => [v[0].toLowerCase(), v[1]]),
+    )
+  }
 
-		return this.buffer !== undefined && this.buffer.length > 0;
-	}
+  processChunk(): boolean {
+    if (this.length && this.buffer && this.buffer.length >= this.length) {
+      this.handleData(this.buffer.substr(0, this.length))
 
-	handleData(text: string): void {
-		const data = JSON.parse(text);
+      if (this.buffer.length > this.length) {
+        this.buffer = this.buffer.substr(this.length)
+      } else {
+        this.buffer = undefined
+      }
+      this.length = undefined
+    }
 
-		if (this.instanceId && data.MTConnectStreams.Header.instanceId != this.instanceId) {
-			this.instanceId = undefined;
-			this.nextSequence = undefined;
-			throw new ProtocolError("Restart stream");
-		} else if (!this.instanceId) {
-			this.instanceId = data.MTConnectStreams.Header.instanceId;
-		}
-		this.timestamp = data.MTConnectStreams.Header.creationTime;
-		this.nextSequence = data.MTConnectStreams.Header.nextSequence;
-		this.transform(data);
-	}
+    return this.buffer !== undefined && this.buffer.length > 0
+  }
 
-	transform(data: any): void {
-		const updates: [any, any][] = [];
-		this.parser?.observations(data, (key: string, obs: any) => {
-			const di = this.dataItems[obs.dataItemId];
-			if (di) {
-				di.apply(key, obs);
-				updates.push([di, obs]);
-			}      
-		});
-		
-		this.onupdate(updates);
-	}
+  handleData(text: string): void {
+    const data = JSON.parse(text)
 
-	pascalize(str: string): string {
-		return str.split('_').map(s => s[0] + s.substr(1).toLowerCase()).join('');
-	}
+    if (
+      this.instanceId &&
+      data.MTConnectStreams.Header.instanceId !== this.instanceId
+    ) {
+      this.instanceId = undefined
+      this.nextSequence = undefined
+      throw new ProtocolError("Restart stream")
+    }
+    if (!this.instanceId) {
+      this.instanceId = data.MTConnectStreams.Header.instanceId
+    }
+    this.timestamp = data.MTConnectStreams.Header.creationTime
+    this.nextSequence = data.MTConnectStreams.Header.nextSequence
+    this.transform(data)
+  }
 
-	async streamData(dataItems: any[]): Promise<void> {
-		this.dataItems = Object.fromEntries(dataItems.map(di => [di.id, di]));
-		this.path = `path=//DataItem[${Object.keys(this.dataItems).map(id => "@id='" + id + "'").join(" or ")}]`;
+  transform(data: any): void {
+    const updates: [any, any][] = []
+    this.parser?.observations(data, (key: string, obs: any) => {
+      const di = this.dataItems[obs.dataItemId]
+      if (di) {
+        di.apply(key, obs)
+        updates.push([di, obs])
+      }
+    })
 
-		while (true) {
-			try {
-				await this.current();
+    this.onupdate(updates)
+  }
 
-				if (this.usePolling)
-					await this.pollSample();
-				else
-					await this.streamSample();
+  pascalize(str: string): string {
+    return str
+      .split("_")
+      .map((s) => s[0] + s.substr(1).toLowerCase())
+      .join("")
+  }
 
-			} catch (error) {
-				console.log(error);
-				if (error instanceof ProtocolError) {
-					await this.sleep(1000);
-				}
-			}
-		}
-	}
+  async streamData(dataItems: any[]): Promise<void> {
+    this.dataItems = Object.fromEntries(dataItems.map((di) => [di.id, di]))
+    this.path = `path=//DataItem[${Object.keys(this.dataItems)
+      .map((id) => `@id='${id}'`)
+      .join(" or ")}]`
 
-	async probeMachine(): Promise<Device[] | undefined> {
-		while (true) {
-			try {
-				await this.probe();
-				return this.devices;
-			} catch (error) {
-				console.log(error);
-				if (error instanceof ProtocolError) {
-					await this.sleep(1000);
-				} else {
-					return undefined;
-				}  
-			}
-		}
-	}
+    while (true) {
+      try {
+        await this.current()
 
-	async loadModel(onload: Function): Promise<this> { 
-		await this.device?.load(onload);
-		return this;
-	}
+        if (this.usePolling) await this.pollSample()
+        else await this.streamSample()
+      } catch (error) {
+        console.log(error)
+        if (error instanceof ProtocolError) {
+          await this.sleep(1000)
+        }
+      }
+    }
+  }
+
+  async probeMachine(): Promise<Device[] | undefined> {
+    while (true) {
+      try {
+        await this.probe()
+        return this.devices
+      } catch (error) {
+        console.log(error)
+        if (error instanceof ProtocolError) {
+          await this.sleep(1000)
+        } else {
+          return undefined
+        }
+      }
+    }
+  }
+
+  async loadModel(onload: Function): Promise<this> {
+    await this.device?.load(onload)
+    return this
+  }
 }
 
-export { Rest };
+export { Rest }
