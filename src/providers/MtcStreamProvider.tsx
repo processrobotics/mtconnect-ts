@@ -7,6 +7,7 @@ import { useDeviceStream } from "../hooks/useMtcStream"
 export type DeviceUpdate = {
   timestamp: Date | string
   sequence: number | string
+  availability?: "AVAILABLE" | "UNAVAILABLE"
 }
 
 export interface MtcStreamContextValue {
@@ -45,11 +46,16 @@ export const MtcStreamProvider: React.FC<MtcStreamProviderProps> = ({
     () => ({ ...stream }),
     [
       stream.isStreamLoading,
+      stream.setIsStreamLoading,
       stream.isDevicesLoaded,
       stream.lastUpdate,
       stream.agentAddress,
+      stream.setAgentAddress,
       stream.isConnected,
+      stream.setIsConnected,
       stream.devices, // note: devices is a ref.current primitive snapshot from hook
+      stream.loadAndStream,
+      stream.rest,
     ],
   )
 

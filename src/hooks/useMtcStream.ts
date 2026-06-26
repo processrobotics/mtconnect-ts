@@ -23,6 +23,35 @@ type DataItem = {
 export type DeviceUpdate = {
   timestamp: Date | string
   sequence: number | string
+  availability?: "AVAILABLE" | "UNAVAILABLE"
+}
+
+const toTimeMs = (timestamp: Date | string): number => {
+  const ms = new Date(timestamp).getTime()
+  return Number.isNaN(ms) ? -1 : ms
+}
+
+const normalizeAvailability = (
+  value: unknown,
+): "AVAILABLE" | "UNAVAILABLE" | undefined => {
+  const normalized = String(value ?? "").toUpperCase()
+  if (normalized === "AVAILABLE" || normalized === "UNAVAILABLE") {
+    return normalized
+  }
+  return undefined
+}
+
+const isNewerUpdate = (current: DeviceUpdate, candidate: DeviceUpdate) => {
+  const currentMs = toTimeMs(current.timestamp)
+  const candidateMs = toTimeMs(candidate.timestamp)
+  if (candidateMs !== currentMs) {
+    return candidateMs > currentMs
+  }
+  const currentSeq = Number(current.sequence)
+  const candidateSeq = Number(candidate.sequence)
+  if (Number.isNaN(candidateSeq)) return false
+  if (Number.isNaN(currentSeq)) return true
+  return candidateSeq > currentSeq
 }
 
 export function useDeviceStream(initialAgentAddress: string) {
@@ -39,26 +68,34 @@ export function useDeviceStream(initialAgentAddress: string) {
         const newDevices = restRef.current.devices.map(
           (device: Device) => device,
         )
-        // Update lastUpdate by device UUID
-        const updates: Record<string, DeviceUpdate> = {}
-        restRef.current.devices.forEach((device: Device) => {
-          device.findDataItems((di: DataItem) => {
-            if (di.value?.value != null) {
-              if (
-                di.type === "AVAILABILITY" &&
-                di.id === `${device.id}_avail`
-              ) {
-                di.value?.value === "AVAILABLE" &&
-                  (updates[device.uuid] = {
-                    timestamp: di.value.timestamp || "Never",
-                    sequence: di.value.sequence || 0,
-                  })
+        setLastUpdate((previous) => {
+          const merged = { ...previous }
+          values.forEach(([di, obs]: [DataItem, any]) => {
+            const deviceUuid = di?.component?.root?.uuid
+            if (!deviceUuid || !obs?.timestamp) return
+
+            const existing = merged[deviceUuid]
+            const availability =
+              di?.type === "AVAILABILITY"
+                ? normalizeAvailability(obs?.value)
+                : undefined
+            const candidate: DeviceUpdate = {
+              timestamp: obs.timestamp,
+              sequence: obs.sequence ?? 0,
+              availability: availability ?? existing?.availability,
+            }
+
+            if (!existing || isNewerUpdate(existing, candidate)) {
+              merged[deviceUuid] = candidate
+            } else if (availability && existing.availability !== availability) {
+              merged[deviceUuid] = {
+                ...existing,
+                availability,
               }
             }
-            return false
           })
+          return merged
         })
-        setLastUpdate(updates)
         setDevices(newDevices)
       }
     }),
